@@ -7,10 +7,11 @@ import { CellAction } from "./cell-action"
 export type ProductColumn = {
   id: string
   name: string;
-  price: string;
+  // price: string;
   category: string;
   // size: string;
   // color: string;
+  // weight: number;
   createdAt: string;
   isFeatured: boolean;
   isArchived: boolean;
@@ -29,10 +30,10 @@ export const columns: ColumnDef<ProductColumn>[] = [
     accessorKey: "isFeatured",
     header: "Featured",
   },
-  {
-    accessorKey: "price",
-    header: "Price",
-  },
+  // {
+  //   accessorKey: "price",
+  //   header: "Price",
+  // },
   {
     accessorKey: "category",
     header: "Category",
@@ -50,6 +51,10 @@ export const columns: ColumnDef<ProductColumn>[] = [
   //       <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: row.original.color }} />
   //     </div>
   //   )
+  // },
+  // {
+  //   accessorKey: "weight",
+  //   header: "Weight",
   // },
   {
     accessorKey: "createdAt",

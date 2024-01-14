@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs';
 
 import prismadb from '@/lib/prismadb';
+import { Variant } from "./[productId]/route"
 
 export async function POST(
   req: Request,
@@ -12,7 +13,7 @@ export async function POST(
 
     const body = await req.json();
 
-    const { name, price, categoryId, 
+    const { name, variants, categoryId, 
       // colorId, sizeId,
        images, isFeatured, isArchived } = body;
 
@@ -28,21 +29,13 @@ export async function POST(
       return new NextResponse("Images are required", { status: 400 });
     }
 
-    if (!price) {
-      return new NextResponse("Price is required", { status: 400 });
+    if (variants?.length<1) {
+      return new NextResponse("Atleast one variant  required", { status: 400 });
     }
 
     if (!categoryId) {
       return new NextResponse("Category id is required", { status: 400 });
     }
-
-    // if (!colorId) {
-    //   return new NextResponse("Color id is required", { status: 400 });
-    // }
-
-    // if (!sizeId) {
-    //   return new NextResponse("Size id is required", { status: 400 });
-    // }
 
     if (!params.storeId) {
       return new NextResponse("Store id is required", { status: 400 });
@@ -62,7 +55,7 @@ export async function POST(
     const product = await prismadb.product.create({
       data: {
         name,
-        price,
+        // variants,
         isFeatured,
         isArchived,
         categoryId,
@@ -78,8 +71,20 @@ export async function POST(
         },
       },
     });
+    // Then create the product variants associated with the product
+    const productVariants = await Promise.all(
+      variants.map((variant: Variant) =>
+        prismadb.productVariant.create({
+          data: {
+            ...variant,
+            productId: product.id,
+          },
+        })
+      )
+    );
   
-    return NextResponse.json(product);
+    // return NextResponse.json(product);
+    return NextResponse.json({ product, productVariants });
   } catch (error) {
     console.log('[PRODUCTS_POST]', error);
     return new NextResponse("Internal error", { status: 500 });
@@ -113,6 +118,7 @@ export async function GET(
       include: {
         images: true,
         category: true,
+        // variants: true, // include product variants in the response
         // color: true,
         // size: true,
       },

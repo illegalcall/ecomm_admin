@@ -50,6 +50,16 @@ model Category {
   @@index([billboardId])
 }
 
+model ProductVariant {
+  id        String   @id @default(uuid())
+  productId String   // Foreign Key to Product
+  product   Product  @relation(fields: [productId], references: [id])
+  weight    Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Product {
   id          String    @id @default(uuid())
   storeId     String    // Foreign Key to Store
@@ -57,20 +67,21 @@ model Product {
   categoryId  String    // Foreign Key to Category
   category    Category  @relation("CategoryToProduct", fields: [categoryId], references: [id])
   name        String
-  price       Decimal
+  // price       Decimal
   isFeatured  Boolean   @default(false)
   isArchived  Boolean   @default(false)
   // sizeId      String    // Foreign Key to Size
   // size        Size      @relation(fields: [sizeId], references: [id])
   // colorId     String    // Foreign Key to Color
   // color       Color     @relation(fields: [colorId], references: [id])
-  weight      Int       @default(0)
+  // weight      Int       @default(0)
 
 
   images      Image[]   // Relation to Image model
   orderItems  OrderItem[]   // Relation to Order model
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  variants    ProductVariant[] // Relation to ProductVariant model
 
 
   @@index([storeId])

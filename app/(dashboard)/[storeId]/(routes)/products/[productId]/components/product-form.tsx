@@ -4,7 +4,7 @@ import * as z from "zod"
 import axios from "axios"
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "react-hot-toast"
 import { Trash } from "lucide-react"
 import { Category, Image, Product  } from "@prisma/client"
@@ -31,13 +31,18 @@ import { Checkbox } from "@/components/ui/checkbox"
 const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
-  price: z.coerce.number().min(1),
+  // price: z.coerce.number().min(1),
   categoryId: z.string().min(1),
   // colorId: z.string().min(1),
   // sizeId: z.string().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
   weight: z.number().min(1).optional(),
+  variants: z.array(z.object({
+    id: z.string().optional(),
+    weight: z.coerce.number().min(1).optional(),
+    price: z.coerce.number().min(1).optional(),
+  })),
 });
 
 type ProductFormValues = z.infer<typeof formSchema>
@@ -57,6 +62,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   // sizes,
   // colors
 }) => {
+  console.log("🚀 ~ initialData:", initialData)
   const params = useParams();
   const router = useRouter();
 
@@ -70,24 +76,30 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const defaultValues = initialData ? {
     ...initialData,
-    price: parseFloat(String(initialData?.price)),
+    // price: parseFloat(String(initialData?.price)),
   } : {
     name: '',
     images: [],
-    price: 0,
+    // price: 0,
     categoryId: '',
     // colorId: '',
     // sizeId: '',
     isFeatured: false,
     isArchived: false,
+    variants: [],
   }
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues
   });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variants",
+  });
 
   const onSubmit = async (data: ProductFormValues) => {
+    console.log("🚀 ~ onSubmit ~ data:", data)
     try {
       setLoading(true);
       if (initialData) {
@@ -141,7 +153,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </Button>
         )}
       </div>
-      <Separator />
+      <Separator />      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
           <FormField
@@ -176,7 +188,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-            <FormField
+            {/* <FormField
               control={form.control}
               name="price"
               render={({ field }) => (
@@ -188,7 +200,43 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
+            <div className="">
+            {fields.map((item, index) => (
+              <div key={item.id}>
+                <FormField
+                  control={form.control}
+                  name={`variants[${index}].weight` as keyof ProductFormValues}
+                  render={({ field }) => {
+                    console.log("🚀 ~ field:", field)
+                    return(
+                    <FormItem>
+                      <FormLabel>Weight</FormLabel>
+                      <FormControl>
+                        <Input type="number" disabled={loading} placeholder="Weight" {...field} value={Number(field.value)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}}
+                />
+                <FormField
+                  control={form.control}
+                  name={`variants[${index}].price` as keyof ProductFormValues} 
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input type="number" disabled={loading} placeholder="9.99" {...field} value={Number(field.value)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <button type="button" onClick={() => remove(index)}>Remove Variant</button>
+              </div>
+            ))}
+            <button type="button" onClick={() => append({ weight: 0, price: 0 })}>Add Variant</button>
+            </div>
             <FormField
               control={form.control}
               name="categoryId"

@@ -1,6 +1,7 @@
 import prismadb from "@/lib/prismadb";
 
 import { ProductForm } from "./components/product-form";
+import { tr } from "date-fns/locale"
 
 const ProductPage = async ({
   params
@@ -13,6 +14,7 @@ const ProductPage = async ({
     },
     include: {
       images: true,
+      variants: true,
     }
   });
 
