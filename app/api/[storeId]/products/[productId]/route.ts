@@ -2,12 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 
 import prismadb from "@/lib/prismadb";
+import { ITag, Variant } from "@/lib/types"
 
-export type Variant = {
-  id: string,
-  price: number,
-  weight: number,
-}
+
 
 export async function GET(
   req: Request,
@@ -87,7 +84,7 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const { name,variants,  categoryId, images, isFeatured, isArchived } = body;
+    const { name,variants,tags,  categoryId, images, isFeatured, isArchived } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -113,8 +110,6 @@ export async function PATCH(
       return new NextResponse("Atleast one variant  required", { status: 400 });
     }
    
-
-
     const storeByUserId = await prismadb.store.findFirst({
       where: {
         id: params.storeId,
@@ -125,7 +120,6 @@ export async function PATCH(
     if (!storeByUserId) {
       return new NextResponse("Unauthorized", { status: 405 });
     }
-    console.log("🚀 ~ variants:", variants)
     await prismadb.product.update({
       where: {
         id: params.productId
@@ -151,6 +145,13 @@ export async function PATCH(
               create: { ...variant },
             }
           )),
+        },
+        tags: {
+          upsert: tags.map((tag:ITag) => ({
+            where: { id: tag.id },
+            update: { name: tag.name },
+            create: { id: tag.id, name: tag.name }
+          }))
         },        
         isFeatured,
         isArchived,

@@ -2,7 +2,7 @@
 
 import * as z from "zod"
 import axios from "axios"
-import { useState } from "react"
+import { ChangeEvent, SetStateAction, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "react-hot-toast"
@@ -27,6 +27,7 @@ import { AlertModal } from "@/components/modals/alert-modal"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ImageUpload from "@/components/ui/image-upload"
 import { Checkbox } from "@/components/ui/checkbox"
+import { InputTags } from "@/components/ui/input-tags"
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -42,6 +43,10 @@ const formSchema = z.object({
     id: z.string().optional(),
     weight: z.coerce.number().min(1).optional(),
     price: z.coerce.number().min(1).optional(),
+  })),
+  tags: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string().min(1),
   })),
 });
 
@@ -59,6 +64,7 @@ interface ProductFormProps {
 export const ProductForm: React.FC<ProductFormProps> = ({
   initialData,
   categories,
+  // tags,
   // sizes,
   // colors
 }) => {
@@ -87,6 +93,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     isFeatured: false,
     isArchived: false,
     variants: [],
+    tags:[]
   }
 
   const form = useForm<ProductFormValues>({
@@ -346,6 +353,22 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       This product will not appear anywhere in the store.
                     </FormDescription>
                   </div>
+                </FormItem>
+              )}
+            />
+           <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Add Data Point(s)</FormLabel>
+                  <FormControl>                   
+                    <InputTags {...field} />
+                  </FormControl>
+                  <FormDescription>
+                  ...
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />

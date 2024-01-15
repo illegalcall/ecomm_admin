@@ -18,6 +18,7 @@ const ProductsPage = async ({
     },
     include: {
       category: true,
+      tags: true,
       // size: true,
       // color: true,
       // weight: true,
@@ -26,24 +27,7 @@ const ProductsPage = async ({
       createdAt: 'desc'
     }
   });
-
-  // const productVariants = await prismadb.productVariant.findMany({
-  //   where: {
-  //     product: {
-  //       storeId: params.storeId
-  //     }
-  //   },
-  //   include: {
-  //     product: {
-  //       include: {
-  //         category: true,
-  //       }
-  //     },
-  //   },
-  //   orderBy: {
-  //     createdAt: 'desc'
-  //   }
-  // });
+  console.log("🚀 ~ products:", products)
 
     //FIXME: Working code
   const formattedProducts: ProductColumn[] = products.map((item) => ({
@@ -56,6 +40,7 @@ const ProductsPage = async ({
     // weight: item.weight,
     // size: item.size.name,
     // color: item.color.value,
+    tags: item.tags,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
   }));
 

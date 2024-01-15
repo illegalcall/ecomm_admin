@@ -3,15 +3,15 @@
 import { ColumnDef } from "@tanstack/react-table"
 
 import { CellAction } from "./cell-action"
+import { ITag } from "@/lib/types"
+import { Badge } from "@/components/ui/badge"
 
 export type ProductColumn = {
   id: string
   name: string;
   // price: string;
   category: string;
-  // size: string;
-  // color: string;
-  // weight: number;
+  tags: ITag[];
   createdAt: string;
   isFeatured: boolean;
   isArchived: boolean;
@@ -42,16 +42,20 @@ export const columns: ColumnDef<ProductColumn>[] = [
   //   accessorKey: "size",
   //   header: "Size",
   // },
-  // {
-  //   accessorKey: "color",
-  //   header: "Color",
-  //   cell: ({ row }) => (
-  //     <div className="flex items-center gap-x-2">
-  //       {row.original.color}
-  //       <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: row.original.color }} />
-  //     </div>
-  //   )
-  // },
+  {
+    accessorKey: "tags",
+    header: "Tags",
+    cell: ({ row }) => (
+      <div className="flex items-center gap-x-2">
+        {/* {row.original.color} */}
+        {row.original?.tags?.map((tag) => (
+          <Badge key={tag.id}>{tag.name}</Badge>
+        ))}
+        
+        {/* <div className="h-6 w-6 rounded-full border" style={{ backgroundColor: row.original.color }} /> */}
+      </div>
+    )
+  },
   // {
   //   accessorKey: "weight",
   //   header: "Weight",
