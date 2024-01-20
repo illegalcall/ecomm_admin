@@ -8,22 +8,8 @@ import { validateWebhookSignature } from 'razorpay/dist/utils/razorpay-utils';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
-  // console.log('🚀 ~ req:', req);
   const SECRET = 'qwerty';
-  // const body = await req.text()
-  // const signature = headers().get("Stripe-Signature") as string
 
-  // let event: Stripe.Event
-
-  // try {
-  //   event = stripe.webhooks.constructEvent(
-  //     body,
-  //     signature,
-  //     process.env.STRIPE_WEBHOOK_SECRET!
-  //   )
-  // } catch (error: any) {
-  //   return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
-  // }
   const webhookBody = await req.json();
   const shasum = crypto.createHmac('sha256', SECRET);
   shasum.update(JSON.stringify(webhookBody));
@@ -34,19 +20,19 @@ export async function POST(req: Request) {
       'request is legit',
       webhookBody.payload.payment.entity?.order_id,
     );
-    // const order = await prismadb.order.update({
-    //   where: {
-    //     id: webhookBody.payload.payment.entity?.order_id,
-    //   },
-    //   data: {
-    //     isPaid: true,
+     await prismadb.order.update({
+      where: {
+        id: webhookBody.payload.payment.entity?.order_id,
+      },
+      data: {
+        isPaid: true,
     //     address: addressString,
     //     phone: session?.customer_details?.phone || '',
-    //   },
-    //   include: {
-    //     orderItems: true,
-    //   },
-    // });
+      },
+      // include: {
+      //   orderItems: true,
+      // },
+    });
   } else {
     return new NextResponse(`Webhook Error`, { status: 400 });
   }

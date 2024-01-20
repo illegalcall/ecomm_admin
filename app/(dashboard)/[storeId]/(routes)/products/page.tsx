@@ -1,10 +1,10 @@
-import { format } from "date-fns";
+import { format } from "date-fns"
 
-import prismadb from "@/lib/prismadb";
-import { formatter } from "@/lib/utils";
+import prismadb from "@/lib/prismadb"
+import { formatter } from "@/lib/utils"
 
-import { ProductsClient } from "./components/client";
-import { ProductColumn } from "./components/columns";
+import { ProductsClient } from "./components/client"
+import { ProductColumn } from "./components/columns"
 
 const ProductsPage = async ({
   params
@@ -26,10 +26,9 @@ const ProductsPage = async ({
     orderBy: {
       createdAt: 'desc'
     }
-  });
-  console.log("🚀 ~ products:", products)
+  })
 
-    //FIXME: Working code
+  //FIXME: Working code
   const formattedProducts: ProductColumn[] = products.map((item) => ({
     id: item.id,
     name: item.name,
@@ -42,7 +41,7 @@ const ProductsPage = async ({
     // color: item.color.value,
     tags: item.tags,
     createdAt: format(item.createdAt, 'MMMM do, yyyy'),
-  }));
+  }))
 
   // const formattedProductVariants = productVariants.map((item) => ({
   //   id: item.id,
@@ -63,7 +62,7 @@ const ProductsPage = async ({
 
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ProductsPage;
+export default ProductsPage

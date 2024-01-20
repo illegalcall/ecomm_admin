@@ -145,8 +145,8 @@ export async function PATCH(
       },
     });
 
-    const variantsToUpdate = variants.filter((variant) => variant.id);
-    const variantsToCreate = variants.filter((variant) => !variant.id);
+    const variantsToUpdate = variants.filter((variant: Variant) => variant.id);
+    const variantsToCreate = variants.filter((variant: Variant) => !variant.id);
 
     await prismadb.product.update({
       where: { id: params.productId },

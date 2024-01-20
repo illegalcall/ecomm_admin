@@ -19,73 +19,51 @@ export async function POST(
   req: Request,
   { params }: { params: { storeId: string } },
 ) {
-  const { productIds } = await req.json();
+  const { productVariantIds } = await req.json();
 
-  if (!productIds || productIds.length === 0) {
-    return new NextResponse('Product ids are required', { status: 400 });
+  if (!productVariantIds || productVariantIds.length === 0) {
+    return new NextResponse('Product variant ids are required', {
+      status: 400,
+    });
   }
+  console.log('ramram');
 
-  const products = await prismadb.productVariant.findMany({
+  const productsVariants = await prismadb.productVariant.findMany({
     where: {
       id: {
-        in: productIds,
+        in: productVariantIds,
       },
     },
   });
-
-  // const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
-
-  // products.forEach((product) => {
-  //   line_items.push({
-  //     quantity: 1,
-  //     price_data: {
-  //       currency: 'USD',
-  //       product_data: {
-  //         name: product.name,
-  //       },
-  //       unit_amount: product.price.toNumber() * 100
-  //     }
-  //   });
-  // });
 
   const order = await prismadb.order.create({
     data: {
       storeId: params.storeId,
       isPaid: false,
       orderItems: {
-        create: productIds.map((productId: string) => ({
-          product: {
+        create: productVariantIds.map((productVariantId: string) => ({
+          productVariant: {
             connect: {
-              id: productId,
+              id: productVariantId,
             },
           },
         })),
       },
     },
   });
-  console.log('🚀 ~ order:', order);
 
-  // const session = await stripe.checkout.sessions.create({
-  //   line_items,
-  //   mode: 'payment',
-  //   billing_address_collection: 'required',
-  //   phone_number_collection: {
-  //     enabled: true,
-  //   },
-  //   success_url: `${process.env.FRONTEND_STORE_URL}/cart?success=1`,
-  //   cancel_url: `${process.env.FRONTEND_STORE_URL}/cart?canceled=1`,
-  //   metadata: {
-  //     orderId: order.id
-  //   },
-  // });
+  const amount = productsVariants.reduce(
+    (acc, productVariant) => acc + productVariant.price,
+    0,
+  );
+
   try {
     const razorpayOrder = await razorpay.orders.create({
-      amount: 5000, // convert to smallest currency unit
+      amount: amount * 100, // convert to smallest currency unit
       currency: 'INR',
       receipt: order.id,
     });
 
-    console.log('🚀 ~ razorpayOrder:', razorpayOrder);
     return NextResponse.json(
       { orderId: razorpayOrder.id },
       {
@@ -101,8 +79,4 @@ export async function POST(
       },
     );
   }
-
-  // return NextResponse.json({ url: session.url }, {
-  //   headers: corsHeaders
-  // });
 }
