@@ -1,70 +1,142 @@
-import Stripe from "stripe"
-import { headers } from "next/headers"
-import { NextResponse } from "next/server"
+import Stripe from 'stripe';
+import { headers } from 'next/headers';
+import { NextResponse } from 'next/server';
 
-import { stripe } from "@/lib/stripe"
-import prismadb from "@/lib/prismadb"
+import { stripe } from '@/lib/stripe';
+import prismadb from '@/lib/prismadb';
+import { validateWebhookSignature } from 'razorpay/dist/utils/razorpay-utils';
+import crypto from 'crypto';
 
 export async function POST(req: Request) {
-  const body = await req.text()
-  const signature = headers().get("Stripe-Signature") as string
+  // console.log('🚀 ~ req:', req);
+  const SECRET = 'qwerty';
+  // const body = await req.text()
+  // const signature = headers().get("Stripe-Signature") as string
 
-  let event: Stripe.Event
+  // let event: Stripe.Event
 
-  try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
-  } catch (error: any) {
-    return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
-  }
+  // try {
+  //   event = stripe.webhooks.constructEvent(
+  //     body,
+  //     signature,
+  //     process.env.STRIPE_WEBHOOK_SECRET!
+  //   )
+  // } catch (error: any) {
+  //   return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
+  // }
+  const webhookBody = await req.json();
+  const shasum = crypto.createHmac('sha256', SECRET);
+  shasum.update(JSON.stringify(webhookBody));
+  const digest = shasum.digest('hex');
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const address = session?.customer_details?.address;
-
-  const addressComponents = [
-    address?.line1,
-    address?.line2,
-    address?.city,
-    address?.state,
-    address?.postal_code,
-    address?.country
-  ];
-
-  const addressString = addressComponents.filter((c) => c !== null).join(', ');
-
-
-  if (event.type === "checkout.session.completed") {
-    const order = await prismadb.order.update({
-      where: {
-        id: session?.metadata?.orderId,
-      },
-      data: {
-        isPaid: true,
-        address: addressString,
-        phone: session?.customer_details?.phone || '',
-      },
-      include: {
-        orderItems: true,
-      }
-    });
-
-    
-    // Archive product after purchase
-    // const productIds = order.orderItems.map((orderItem) => orderItem.productId);
-    // await prismadb.product.updateMany({
+  if (digest === req.headers.get('x-razorpay-signature')) {
+    console.log(
+      'request is legit',
+      webhookBody.payload.payment.entity?.order_id,
+    );
+    // const order = await prismadb.order.update({
     //   where: {
-    //     id: {
-    //       in: [...productIds],
-    //     },
+    //     id: webhookBody.payload.payment.entity?.order_id,
     //   },
     //   data: {
-    //     isArchived: true
-    //   }
+    //     isPaid: true,
+    //     address: addressString,
+    //     phone: session?.customer_details?.phone || '',
+    //   },
+    //   include: {
+    //     orderItems: true,
+    //   },
     // });
+  } else {
+    return new NextResponse(`Webhook Error`, { status: 400 });
   }
 
+  // validateWebhookSignature(JSON.stringify(webhookBody), webhookSignature, webhookSecret)
+
+  // if (event.type === "checkout.session.completed") {
+  // const order = await prismadb.order.update({
+  //   where: {
+  //     id: session?.metadata?.orderId,
+  //   },
+  //   data: {
+  //     isPaid: true,
+  //     address: addressString,
+  //     phone: session?.customer_details?.phone || '',
+  //   },
+  //   include: {
+  //     orderItems: true,
+  //   }
+  // });
+
   return new NextResponse(null, { status: 200 });
-};
+}
+
+//STRIPE BELOW
+// import Stripe from "stripe"
+// import { headers } from "next/headers"
+// import { NextResponse } from "next/server"
+
+// import { stripe } from "@/lib/stripe"
+// import prismadb from "@/lib/prismadb"
+
+// export async function POST(req: Request) {
+//   const body = await req.text()
+//   const signature = headers().get("Stripe-Signature") as string
+
+//   let event: Stripe.Event
+
+//   try {
+//     event = stripe.webhooks.constructEvent(
+//       body,
+//       signature,
+//       process.env.STRIPE_WEBHOOK_SECRET!
+//     )
+//   } catch (error: any) {
+//     return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 })
+//   }
+
+//   const session = event.data.object as Stripe.Checkout.Session;
+//   const address = session?.customer_details?.address;
+
+//   const addressComponents = [
+//     address?.line1,
+//     address?.line2,
+//     address?.city,
+//     address?.state,
+//     address?.postal_code,
+//     address?.country
+//   ];
+
+//   const addressString = addressComponents.filter((c) => c !== null).join(', ');
+
+//   if (event.type === "checkout.session.completed") {
+// const order = await prismadb.order.update({
+//   where: {
+//     id: session?.metadata?.orderId,
+//   },
+//   data: {
+//     isPaid: true,
+//     address: addressString,
+//     phone: session?.customer_details?.phone || '',
+//   },
+//   include: {
+//     orderItems: true,
+//   }
+// });
+
+//     // Archive product after purchase
+//     // const productIds = order.orderItems.map((orderItem) => orderItem.productId);
+//     // await prismadb.product.updateMany({
+//     //   where: {
+//     //     id: {
+//     //       in: [...productIds],
+//     //     },
+//     //   },
+//     //   data: {
+//     //     isArchived: true
+//     //   }
+//     // });
+//   }
+
+//   return new NextResponse(null, { status: 200 });
+// };

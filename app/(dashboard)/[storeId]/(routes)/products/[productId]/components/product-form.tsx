@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useFieldArray, useForm } from "react-hook-form"
 import { toast } from "react-hot-toast"
 import { Trash } from "lucide-react"
-import { Category, Image, Product  } from "@prisma/client"
+import { Category, Image, Product } from "@prisma/client"
 import { useParams, useRouter } from "next/navigation"
 
 import { Input } from "@/components/ui/input"
@@ -48,15 +48,15 @@ const formSchema = z.object({
     id: z.string().optional(),
     name: z.string().min(1),
   })),
-});
+})
 
 type ProductFormValues = z.infer<typeof formSchema>
 
 interface ProductFormProps {
   initialData: Product & {
     images: Image[]
-  } | null;
-  categories: Category[];
+  } | null
+  categories: Category[]
   // colors: Color[];
   // sizes: Size[];
 };
@@ -69,16 +69,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   // colors
 }) => {
   console.log("🚀 ~ initialData:", initialData)
-  const params = useParams();
-  const router = useRouter();
+  const params = useParams()
+  const router = useRouter()
 
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const title = initialData ? 'Edit product' : 'Create product';
-  const description = initialData ? 'Edit a product.' : 'Add a new product';
-  const toastMessage = initialData ? 'Product updated.' : 'Product created.';
-  const action = initialData ? 'Save changes' : 'Create';
+  const title = initialData ? 'Edit product' : 'Create product'
+  const description = initialData ? 'Edit a product.' : 'Add a new product'
+  const toastMessage = initialData ? 'Product updated.' : 'Product created.'
+  const action = initialData ? 'Save changes' : 'Create'
 
   const defaultValues = initialData ? {
     ...initialData,
@@ -93,61 +93,61 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     isFeatured: false,
     isArchived: false,
     variants: [],
-    tags:[]
+    tags: []
   }
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues
-  });
+  })
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "variants",
-  });
+  })
 
   const onSubmit = async (data: ProductFormValues) => {
     console.log("🚀 ~ onSubmit ~ data:", data)
     try {
-      setLoading(true);
+      setLoading(true)
       if (initialData) {
-        await axios.patch(`/api/${params.storeId}/products/${params.productId}`, data);
+        await axios.patch(`/api/${params.storeId}/products/${params.productId}`, data)
       } else {
-        await axios.post(`/api/${params.storeId}/products`, data);
+        await axios.post(`/api/${params.storeId}/products`, data)
       }
-      router.refresh();
-      router.push(`/${params.storeId}/products`);
-      toast.success(toastMessage);
+      router.refresh()
+      router.push(`/${params.storeId}/products`)
+      toast.success(toastMessage)
     } catch (error: any) {
-      toast.error('Something went wrong.');
+      toast.error('Something went wrong.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const onDelete = async () => {
     try {
-      setLoading(true);
-      await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
-      router.refresh();
-      router.push(`/${params.storeId}/products`);
-      toast.success('Product deleted.');
+      setLoading(true)
+      await axios.delete(`/api/${params.storeId}/products/${params.productId}`)
+      router.refresh()
+      router.push(`/${params.storeId}/products`)
+      toast.success('Product deleted.')
     } catch (error: any) {
-      toast.error('Something went wrong.');
+      toast.error('Something went wrong.')
     } finally {
-      setLoading(false);
-      setOpen(false);
+      setLoading(false)
+      setOpen(false)
     }
   }
 
   return (
     <>
-    <AlertModal 
-      isOpen={open} 
-      onClose={() => setOpen(false)}
-      onConfirm={onDelete}
-      loading={loading}
-    />
-     <div className="flex items-center justify-between">
+      <AlertModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={onDelete}
+        loading={loading}
+      />
+      <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
           <Button
@@ -160,7 +160,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </Button>
         )}
       </div>
-      <Separator />      
+      <Separator />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 w-full">
           <FormField
@@ -170,9 +170,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <FormItem>
                 <FormLabel>Images</FormLabel>
                 <FormControl>
-                  <ImageUpload 
-                    value={field.value.map((image) => image.url)} 
-                    disabled={loading} 
+                  <ImageUpload
+                    value={field.value.map((image) => image.url)}
+                    disabled={loading}
                     onChange={(url) => field.onChange([...field.value, { url }])}
                     onRemove={(url) => field.onChange([...field.value.filter((current) => current.url !== url)])}
                   />
@@ -209,40 +209,40 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               )}
             /> */}
             <div className="">
-            {fields.map((item, index) => (
-              <div key={item.id}>
-                <FormField
-                  control={form.control}
-                  name={`variants[${index}].weight` as keyof ProductFormValues}
-                  render={({ field }) => {
-                    console.log("🚀 ~ field:", field)
-                    return(
-                    <FormItem>
-                      <FormLabel>Weight</FormLabel>
-                      <FormControl>
-                        <Input type="number" disabled={loading} placeholder="Weight" {...field} value={Number(field.value)} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}}
-                />
-                <FormField
-                  control={form.control}
-                  name={`variants[${index}].price` as keyof ProductFormValues} 
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Price</FormLabel>
-                      <FormControl>
-                        <Input type="number" disabled={loading} placeholder="9.99" {...field} value={Number(field.value)} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <button type="button" onClick={() => remove(index)}>Remove Variant</button>
-              </div>
-            ))}
-            <button type="button" onClick={() => append({ weight: 0, price: 0 })}>Add Variant</button>
+              {fields.map((item, index) => (
+                <div key={item.id}>
+                  <FormField
+                    control={form.control}
+                    name={`variants[${index}].weight` as keyof ProductFormValues}
+                    render={({ field }) => {
+                      return (
+                        <FormItem>
+                          <FormLabel>Weight</FormLabel>
+                          <FormControl>
+                            <Input type="number" disabled={loading} placeholder="Weight" {...field} value={Number(field.value)} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )
+                    }}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`variants[${index}].price` as keyof ProductFormValues}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <Input type="number" disabled={loading} placeholder="9.99" {...field} value={Number(field.value)} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <button type="button" onClick={() => remove(index)}>Remove Variant</button>
+                </div>
+              ))}
+              <button type="button" onClick={() => append({ weight: 0, price: 0 })}>Add Variant</button>
             </div>
             <FormField
               control={form.control}
@@ -356,17 +356,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-           <FormField
+            <FormField
               control={form.control}
               name="tags"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Add Data Point(s)</FormLabel>
-                  <FormControl>                   
+                  <FormControl>
                     <InputTags {...field} />
                   </FormControl>
                   <FormDescription>
-                  ...
+                    ...
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -379,5 +379,5 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </form>
       </Form>
     </>
-  );
-};
+  )
+}
