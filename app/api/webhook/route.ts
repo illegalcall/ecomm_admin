@@ -18,11 +18,11 @@ export async function POST(req: Request) {
   if (digest === req.headers.get('x-razorpay-signature')) {
     console.log(
       'request is legit',
-      webhookBody.payload.payment.entity?.order_id,
+      webhookBody.payload.payment.entity,
     );
-     await prismadb.order.update({
+     const newOrder = await prismadb.order.update({
       where: {
-        id: webhookBody.payload.payment.entity?.order_id,
+        id: webhookBody.payload.payment.entity?.notes?.order_id,
       },
       data: {
         isPaid: true,

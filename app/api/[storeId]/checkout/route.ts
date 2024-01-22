@@ -62,10 +62,13 @@ export async function POST(
       amount: amount * 100, // convert to smallest currency unit
       currency: 'INR',
       receipt: order.id,
+      notes:{
+        order_id: order.id,
+      }
     });
 
     return NextResponse.json(
-      { orderId: razorpayOrder.id },
+      { orderId: razorpayOrder.id, notes: razorpayOrder.notes },
       {
         headers: corsHeaders,
       },
