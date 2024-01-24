@@ -361,9 +361,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               name="tags"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Add Data Point(s)</FormLabel>
+                  <FormLabel>Add tags</FormLabel>
                   <FormControl>
-                    <InputTags {...field} />
+                    { // @ts-ignore}
+                      <InputTags {...field} />
+                    }
                   </FormControl>
                   <FormDescription>
                     ...
