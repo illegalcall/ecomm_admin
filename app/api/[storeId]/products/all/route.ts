@@ -29,6 +29,7 @@ export async function GET(
       images: true,
       variants: true,
       category: true,
+      tags: true
     }
     })
   //     categoryId,
